@@ -55,37 +55,14 @@ After building the package, we should use following command in every terminal we
 ```shell
 source install/setup.bash
 ```
-
-## Project
-The rccar gym environment has slight modifications so you need to install the dependencies again.(commands above)
-
-To train your agent and evaluate, run project code with `--mode train` argument.
-```shell
-ros2 run rccar_bringup RLLAB_project3 --mode train
-#replace RLLAB with your team name
-```
-To load a trained model without training, just run without `--mode` argument since the default value is `val`
-```shell
-ros2 run rccar_bringup RLLAB_project3
-#replace RLLAB with your team name
-```
-## Manually publishing map topic
-For each project code, you need to publish `/query` topic manually using the following command in another terminal
+## Running System by ROS2 Commands
+To run the node activating rccar gym, use following command in the first terminal.
 
 ```shell
-ros2 topic pub --once /query message/msg/Query "{id: '0', team: 'RLLAB', map: 'map1', trial: 0, exit: false}"
-# don't forget to change RLLAB to your team name
+ros2 run rccar_bringup rccar_bringup
 ```
-Note that you can publish the topic once with `--once` argument
-## Map generation
-You can change the parameters defined in `random_trackgen.py` and randomly generate your own map with `--seed` argument. You can run `random_trackgen.py` using the following command.
+To run the node which enables keyboard control, use following command in the second terminal.
+
 ```shell
-cd Intelligent-Systems-RLLAB/Intelligent-Systems-2025-Project/maps
-python random_trackgen.py --seed your_seed --name your_map_name
-```
-## Obstacle generation
-The obstacles are generated in the map randomly with `--num_obstacles` argument. If you want to generate different positions of obstacles change the seed.
-If there are too many obstacles generated inside the environment, rendering could slow down.
-```shell
-ros2 run rccar_bringup RLLAB_project3 --num_obstacles 20
+ros2 run rccar_bringup keyboard_control
 ```
