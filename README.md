@@ -8,8 +8,8 @@ rccar_gym environment codes are originated from [F1TENTH Gym](https://github.com
 
 > Authors of this repo: *Minsoo Kim, Yoseph Park, Subin Shin*
 
-## Fall 2025 
-> TAs for this class: *Hyeondal Son, Jooyoung Kim, Hosung Lee*
+## Fall 2026 
+> TAs for this class: *Jooyoung Kim, Hyeondal Son, Seoyoung Lim, Jaeseok Yang*
 
 ## RCCar Gym Environment Setting
 We recommend you install packages inside a virtual environment such as [Anaconda](https://www.anaconda.com) (or virtualenv).
@@ -18,8 +18,8 @@ We recommend you install packages inside a virtual environment such as [Anaconda
 conda create -n rccar python=3.8
 conda activate rccar
 
-git clone https://github.com/rllab-snu/Intelligent-Systems-RLLAB.git
-cd Intelligent-Systems-RLLAB/Intelligent-Systems-2025-Project/rccar_gym
+git clone https://github.com/rllab-snu/Intelligent-Systems-2026.git
+cd Intelligent-Systems-2026/Intelligent-Systems-2026-Pre/rccar_gym
 pip install -e .
 ```
 This will install a gym environment for the RC car and its dependencies.
@@ -41,7 +41,7 @@ This enables installed files resulting from colcon build to use desired package 
 Now, install dependencies and build the packages.
 
 ```shell
-cd Intelligent-Systems-RLLAB/Intelligent-Systems-2025-Project
+cd Intelligent-Systems-2026/Intelligent-Systems-2026-Pre
 rosdep update --rosdistro foxy
 rosdep install -i --from-path src --rosdistro foxy -y
 colcon build --symlink-install
