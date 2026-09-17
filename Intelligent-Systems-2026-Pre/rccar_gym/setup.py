@@ -20,7 +20,7 @@ setup(
         'scikit-learn',
         'gitpython',
         'lark',
-        'empy==3.3.4',
+        'empy>=3.3.2,<4',
         'matplotlib',
         'shapely'
     ]
