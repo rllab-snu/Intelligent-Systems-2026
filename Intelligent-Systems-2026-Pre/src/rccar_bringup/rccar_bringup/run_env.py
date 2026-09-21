@@ -107,7 +107,7 @@ class RCCarBridge(Node):
             self.query_steer = action_msg.drive.steering_angle
             self.query_speed = action_msg.drive.speed
             
-            _, _, terminate, _, _ = self.env.step(np.array([[self.query_steer, self.query_speed]]))
+            _, _, terminate, _, _ = self.env.step(np.array([self.query_steer, self.query_speed]))
             
             if self.render:
                 self.env.render()
