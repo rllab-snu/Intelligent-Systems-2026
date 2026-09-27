@@ -371,7 +371,9 @@ class PygameEnvRenderer(EnvRenderer):
         points = ((points - origin[:2]) / resolution).astype(int)
         size = math.ceil(size / ppu)
 
-        pygame.draw.lines(self.map_canvas, color, False, points, size)
+        pygame.draw.lines(
+            self.map_canvas, color, closed=False, points=points, width=size
+        )
 
     def render_closed_lines(
         self,
@@ -397,7 +399,9 @@ class PygameEnvRenderer(EnvRenderer):
         points = ((points - origin[:2]) / resolution).astype(int)
         size = math.ceil(size / ppu)
 
-        pygame.draw.lines(self.map_canvas, color, True, points, size)
+        pygame.draw.lines(
+            self.map_canvas, color, closed=True, points=points, width=size
+        )
 
     def close(self) -> None:
         """

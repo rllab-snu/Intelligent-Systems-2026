@@ -9,7 +9,7 @@ rccar_gym environment codes are originated from [F1TENTH Gym](https://github.com
 > Authors of this repo: *Minsoo Kim, Yoseph Park, Subin Shin*
 
 ## Fall 2026 
-> TAs for this class: *Jooyoung Kim, Hyeondal Son, Seoyoung Lim, Jaeseok Yang*
+> TAs for this class: *Jooyoung Kim, Hyeondal Son, Seoyoung Lim, Jaeseok Yang
 
 ## RCCar Gym Environment Setting
 We recommend you install packages inside a virtual environment such as [Anaconda](https://www.anaconda.com) (or virtualenv).
@@ -41,7 +41,7 @@ This enables installed files resulting from colcon build to use desired package 
 Now, install dependencies and build the packages.
 
 ```shell
-cd Intelligent-Systems-2026/Intelligent-Systems-2026-Pre
+cd Intelligent-Systems-RLLAB/Intelligent-Systems-2026-Pre
 rosdep update --rosdistro foxy
 rosdep install -i --from-path src --rosdistro foxy -y
 colcon build --symlink-install
@@ -55,14 +55,23 @@ After building the package, we should use following command in every terminal we
 ```shell
 source install/setup.bash
 ```
-## Running System by ROS2 Commands
-To run the node activating rccar gym, use following command in the first terminal.
+
+## Running codes for pre-project 3
+To evaluate your controller follow the steps below
 
 ```shell
-ros2 run rccar_bringup rccar_bringup
+ros2 run rccar_bringup pid_control
 ```
-To run the node which enables keyboard control, use following command in the second terminal.
+You can save your trajectory by using `--save` argument.
+
+```shell 
+ros2 run rccar_bringup pid_control --save
+```
+
+From now on to evaluate your code, you need to publish `/query` topic manually using the following command in another terminal
 
 ```shell
-ros2 run rccar_bringup keyboard_control
+ros2 topic pub --once /query message/msg/Query "{id: '0', team: 'RLLAB', map: 'map1', trial: 0, exit: false}"
+# you can use other maps we provide in the maps directory
 ```
+Note that you can publish the topic once with `--once` argument
