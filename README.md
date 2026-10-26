@@ -59,6 +59,33 @@ source install/setup.bash
 ## Project 1
 The rccar gym environment has slight modifications so you need to install the dependencies again.(commands above)
 
+### Collect expert demonstrations
+
+Before training your GPR agent, implement the PID controller and trajectory
+saving sections in `pid_control.py`. Save the LiDAR observations (`scan`)
+and corresponding actions (`steer`, `speed`) for each training map.
+
+Run the PID controller with:
+```shell
+ros2 run rccar_bringup pid_control --save --traj_dir project/IS_RLLAB/project/trajectory
+# Replace RLLAB with your team name.
+```
+
+The PID controller and GPR agent use different base directories for
+`--traj_dir`. The command above saves demonstrations in the directory
+that the GPR agent reads by default.
+
+In another terminal, publish a query to start collecting data:
+```shell
+ros2 topic pub --once /query message/msg/Query "{id: '0', team: 'RLLAB', map: 'map1', trial: 0, exit: false}"
+```
+
+Repeat for each map in your GPR agent's `self.train_maps`
+(`map1` and `map2` by default).
+Ensure that the saved filenames and data format match your implementation
+of the GPR agent's `train()` method.
+
+### Train and evaluate
 To train your GPR agent and evaluate, run project 1 code with `--mode train` argument.
 ```shell
 ros2 run rccar_bringup RLLAB_project1 --mode train
