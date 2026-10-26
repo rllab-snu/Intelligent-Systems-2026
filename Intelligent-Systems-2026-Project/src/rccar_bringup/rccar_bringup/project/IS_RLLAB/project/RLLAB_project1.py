@@ -180,10 +180,6 @@ class RCCarPolicy(Node):
         return action
 
 
-    ######################################################
-    #####           DO NOT CHANGE THIS PART          #####
-    ##### THIS IS A PART OF THE TA's EVALUATION CODE #####
-    ######################################################
     def query_callback(self, query_msg):
         
         id = query_msg.id
