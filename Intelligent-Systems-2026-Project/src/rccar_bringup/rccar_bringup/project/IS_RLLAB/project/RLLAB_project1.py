@@ -83,7 +83,7 @@ def get_args():
     return args
 
 
-class GaussianProcess(Node):
+class RCCarPolicy(Node):
     def __init__(self, args):
         super().__init__(f"{TEAM_NAME}_project1")
         self.args = args
@@ -307,7 +307,7 @@ class GaussianProcess(Node):
 def main():
     args = get_args()
     rclpy.init()
-    node = GaussianProcess(args)
+    node = RCCarPolicy(args)
     rclpy.spin(node)
 
 
