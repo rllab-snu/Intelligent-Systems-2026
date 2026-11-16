@@ -83,7 +83,7 @@ def get_args():
     return args
 
 
-class RCCarPolicy(Node):
+class GaussianProcess(Node):
     def __init__(self, args):
         super().__init__(f"{TEAM_NAME}_project1")
         self.args = args
@@ -180,6 +180,10 @@ class RCCarPolicy(Node):
         return action
 
 
+    ######################################################
+    #####           DO NOT CHANGE THIS PART          #####
+    ##### THIS IS A PART OF THE TA's EVALUATION CODE #####
+    ######################################################
     def query_callback(self, query_msg):
         
         id = query_msg.id
@@ -303,7 +307,7 @@ class RCCarPolicy(Node):
 def main():
     args = get_args()
     rclpy.init()
-    node = RCCarPolicy(args)
+    node = GaussianProcess(args)
     rclpy.spin(node)
 
 
