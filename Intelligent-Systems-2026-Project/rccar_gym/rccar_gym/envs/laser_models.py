@@ -248,36 +248,71 @@ def get_scan(
     return scan
 
 
+@njit(cache=True)
+def _segment_swept_body(ax, ay, bx, by, front, rear, left, right, vx, vy, duration):
+    """Exact SAT for a wall segment and a rectangle swept by translation."""
+    cx = (front + rear) / 2 + vx * duration / 2
+    cy = (left + right) / 2 + vy * duration / 2
+    hx, hy = (front - rear) / 2, (left - right) / 2
+    dx, dy = (ax + bx) / 2 - cx, (ay + by) / 2 - cy
+    sx, sy = (bx - ax) / 2, (by - ay) / 2
+    for nx, ny in ((1., 0.), (0., 1.), (-vy, vx), (-sy, sx)):
+        support = hx * abs(nx) + hy * abs(ny)
+        support += duration / 2 * abs(vx * nx + vy * ny) + abs(sx * nx + sy * ny)
+        if abs(dx * nx + dy * ny) > support + 1e-12:
+            return False
+    return True
+
+
 @njit(cache=True, error_model="numpy")
-def check_ttc_jit(scan, vel, scan_angles, cosines, side_distances, ttc_thresh):
+def check_ttc_jit(scan, vel, scan_angles, cosines, side_distances, ttc_thresh,
+                  lateral_vel=0.0, yaw_rate=0.0, lidar_offset=0.0):
+    """Predict contact using noise-free LiDAR points and continuous wall segments.
+
+    Translation is swept exactly; rotating motion is checked at <=1 ms
+    intervals, without inflating the body or changing the TTC horizon.
+    Discontinuous adjacent ranges are never joined across an occlusion.
     """
-    Checks the iTTC of each beam in a scan for collision with environment
-
-    Args:
-        scan (np.ndarray(num_beams, )): current scan to check
-        vel (float): current velocity
-        scan_angles (np.ndarray(num_beams, )): precomped angles of each beam
-        cosines (np.ndarray(num_beams, )): precomped cosines of the scan angles
-        side_distances (np.ndarray(num_beams, )): precomped distances at each beam from the laser to the sides of the car
-        ttc_thresh (float): threshold for iTTC for collision
-
-    Returns:
-        in_collision (bool): whether vehicle is in collision with environment
-        collision_angle (float): at which angle the collision happened
-    """
-    in_collision = False
-    if vel != 0.0:
-        num_beams = scan.shape[0]
-        for i in range(num_beams):
-            proj_vel = vel * cosines[i]
-            ttc = (scan[i] - side_distances[i]) / proj_vel
-            if (ttc < ttc_thresh) and (ttc >= 0.0):
-                in_collision = True
-                break
-    else:
-        in_collision = False
-
-    return in_collision
+    front, rear, left, right = 0.0, 0.0, 0.0, 0.0
+    nearest = np.inf
+    max_spacing = 0.0
+    for i in range(scan.shape[0]):
+        x = side_distances[i] * cosines[i]
+        y = side_distances[i] * np.sin(scan_angles[i])
+        front, rear = max(front, x), min(rear, x)
+        left, right = max(left, y), min(right, y)
+        nearest = min(nearest, scan[i])
+        if i > 0:
+            max_spacing = max(max_spacing, abs(scan_angles[i] - scan_angles[i - 1]))
+    # Fast rejection when every wall point is beyond any possible body reach.
+    radius = np.hypot(max(abs(front + lidar_offset), abs(rear + lidar_offset)), max(left, -right))
+    reach = radius + abs(lidar_offset) + np.hypot(vel, lateral_vel) * ttc_thresh
+    if max_spacing < np.pi / 2 and nearest * np.cos(max_spacing / 2) > reach:
+        return False
+    steps = 1 if abs(yaw_rate) < 1e-10 else max(1, int(np.ceil(ttc_thresh / .001)))
+    for step in range(steps + 1):
+        t = step * ttc_thresh / steps
+        angle = yaw_rate * t
+        co, si = np.cos(angle), np.sin(angle)
+        vx, vy = vel * co + lateral_vel * si, -vel * si + lateral_vel * co
+        previous_x, previous_y = 0.0, 0.0
+        for i in range(scan.shape[0]):
+            # Transform fixed wall observations into the future body frame.
+            px = scan[i] * cosines[i] + lidar_offset - vel * t
+            py = scan[i] * np.sin(scan_angles[i]) - lateral_vel * t
+            x, y = co * px + si * py - lidar_offset, -si * px + co * py
+            end = 0.0 if step == steps else ttc_thresh / steps
+            if _segment_swept_body(x, y, x, y, front, rear, left, right, vx, vy, end):
+                return True
+            if i > 0:
+                spacing = abs(scan_angles[i] - scan_angles[i - 1])
+                continuity = max(.02, 4 * spacing * min(scan[i], scan[i - 1]))
+                if abs(scan[i] - scan[i - 1]) <= continuity:
+                    if _segment_swept_body(previous_x, previous_y, x, y,
+                                           front, rear, left, right, vx, vy, end):
+                        return True
+            previous_x, previous_y = x, y
+    return False
 
 
 @njit(cache=True)
@@ -531,6 +566,8 @@ class ScanSimulator2D(object):
             self.max_range,
         )
 
+        # Keep collision geometry independent of sensor observation noise.
+        self.scan_without_noise = scan.copy()
         if rng is not None:
             noise = rng.normal(0.0, std_dev, size=self.num_beams)
             scan += noise
