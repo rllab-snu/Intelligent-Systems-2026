@@ -262,16 +262,20 @@ class RaceCar(object):
 
         in_collision = check_ttc_jit(
             current_scan,
-            self.state[3],
+            self.state[3] * np.cos(self.state[6]),
             self.scan_angles,
             self.cosines,
             self.side_distances,
             self.ttc_thresh,
+            self.state[3] * np.sin(self.state[6]),
+            self.state[5],
+            self.lidar_pos_offset,
         )
 
         # if in collision stop vehicle
         if in_collision:
-            self.state[3:] = 0.0
+            self.state[3] = 0.0
+            self.state[5:] = 0.0
             self.accel = 0.0
             self.steer_angle_vel = 0.0
 
@@ -331,6 +335,7 @@ class RaceCar(object):
             np.append(self.lidar_pos, self.state[4]), self.scan_rng
         )
 
+        self.collision_scan = RaceCar.scan_simulator.scan_without_noise
         return current_scan
 
     def update_opp_poses(self, opp_poses):
@@ -361,7 +366,7 @@ class RaceCar(object):
         current_scan = agent_scans[agent_index]
 
         # check ttc
-        self.check_ttc(current_scan)
+        self.check_ttc(self.collision_scan)
 
         # ray cast other agents to modify scan
         new_scan = self.ray_cast_agents(current_scan)
